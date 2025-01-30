@@ -23,7 +23,7 @@ jobs:
         run: npm run build
         continue-on-error: true
       - name: upload
-        uses: actions/upload-oages-artifact@v3
+        uses: actions/upload-pages-artifact@v3
         with:
           path: build
   deploy:
@@ -35,4 +35,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v3
