@@ -23,7 +23,7 @@ jobs:
         run: npm run build
         continue-on-error: true
       - name: upload
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-oages-artifact@v3
         with:
           path: build
   deploy:
