@@ -1,0 +1,372 @@
+theme: default # default || dark
+organization: OMRON SINIC X
+twitter: '@omron_sinicx'
+title: 'Rethinking the role of frames for SE(3)-invariant crystal structure modeling'
+conference: ICLR 2025
+resources:
+  paper: https://openreview.net/forum?id=gzxDjnvBDa
+  code: https://github.com/omron-sinicx/crystalframer
+  video: null
+  blog: null
+  demo: null
+  huggingface: null
+description: To make a GNN invariant to rotations, let's standardize the oriantations of local atomic environments represented by internal self-attention weights, instead of directly standardizing the global structure.
+image: https://omron-sinicx.github.io/crystalframer/teaser.png
+url: https://omron-sinicx.github.io/crystalframer
+speakerdeck: null #b7a0614c24014dcbbb121fbb9ed234cd
+authors:
+  - name: Yusei Ito*
+    affiliation: [1, 2]
+    url: https://openreview.net/profile?id=~Yusei_Ito1
+    position: Intern
+  - name: Tatsunori Taniai*
+    affiliation: [1]
+    position: Senior Researcher
+    url: https://taniai.space
+  - name: Ryo Igarashi
+    affiliation: [1]
+    position: Project Researcher
+    url: https://scholar.google.com/citations?user=i06GU0EAAAAJ&hl=ja
+  - name: Yoshitaka Ushiku
+    affiliation: [1]
+    position: Vice President for Research
+    url: https://yoshitakaushiku.net/
+  - name: Kanta Ono
+    affiliation: [2]
+    position: Professor
+    url: https://scholar.google.com/citations?user=mJwzYNwAAAAJ&hl=en
+    #  - name: Mai Nishimura
+    #    affiliation: [1]
+    #    url: https://denkiwakame.github.io
+    #  - name: Asako Kanezaki
+    #    affiliation: [2]
+    #    url: https://kanezaki.github.io/
+contact_ids: ['github', 2] #=> github issues, contact@sinicx.com, 2nd author
+affiliations:
+  - OMRON SINIC X Corporation
+  - Osaka University
+meta: |
+  * Equally contributed. The work was done while the first author was an intern at OMRON SINIC X.
+bibtex: >
+  @inproceedings{ito2025crystalframer,
+    title     = {Rethinking the role of frames for SE(3)-invariant crystal structure modeling},
+    author    = {Yusei Ito and 
+                 Tatsunori Taniai and
+                 Ryo Igarashi and
+                 Yoshitaka Ushiku and
+                 Kanta Ono},
+    booktitle = {The Thirteenth International Conference on Learning Representations (ICLR 2025)},
+    year      = {2025},
+    url       = {https://openreview.net/forum?id=gzxDjnvBDa}
+  }
+header:
+  bg_curve:
+    sinic_curve.png
+    #  bg_image: https://github.com/omron-sinicx/swarm-body/raw/main/images/teaser.jpg
+
+teaser: teaser.png
+overview: |
+  Crystal structure modeling with graph neural networks is essential for various applications in materials informatics,
+  and capturing SE(3)-invariant geometric features is a fundamental requirement for these networks. A straightforward 
+  approach is to model with orientation-standardized structures through structure-aligned coordinate systems, or ‟frames.” 
+  However, unlike molecules, determining frames for crystal structures is challenging due to their infinite and highly 
+  symmetric nature. In particular, existing methods rely on a statically fixed frame for each structure, determined solely 
+  by its structural information, regardless of the task under consideration. Here, we rethink the role of frames, 
+  *questioning whether such simplistic alignment with the structure is sufficient*, and propose the concept of 
+  *dynamic frames*. While accommodating the infinite and symmetric nature of crystals, these frames provide each atom 
+  with a dynamic view of its local environment, focusing on actively interacting atoms. We demonstrate this concept by 
+  utilizing the attention mechanism in a recent transformer-based crystal encoder, resulting in a new architecture called 
+  **CrystalFramer**. Extensive experiments show that CrystalFramer outperforms conventional frames and existing crystal encoders 
+  in various crystal property prediction tasks.
+
+body:
+  - title: Problem
+    text: |
+      ### Crystal structure
+      *Crystal structures are periodic arrangements of atoms in 3D space, 
+      serving as the source codes for diverse materials, 
+      such as permanent magnets, battery materials, and superconductors.*
+
+      <div style="text-align:center">
+      <p><img src="crystal.png" class="uk-width-3-5@m" alt="Crystal structure in 2D space" /><br />
+      <strong>Crystal structure in 2D space</strong></p>
+      </div>
+
+      A crystal structure is typically described by its repeatable 3D slice called a **unit cell**.
+      We assume a unit cell consisting of $N$ atoms and denote it as $(A, P, L)$:
+       - $A = [a_1, a_2, \cdots, a_N] \in \mathbb{N}^{1 \times N}$: the species (atomic numbers) of unit cell atoms.
+       - $P = [\bm{p}_1, \bm{p}_2, \cdots, \bm{p}_N] \in  \mathbb{R}^{3 \times N}$: the 3D Cartesian coordinates of unit cell atoms.
+       - $L = [\bm{\ell}_1, \bm{\ell}_2, \bm{\ell}_3] \in \mathbb{R}^{3 \times 3}$: lattice vectors that define periodic unit-cell translations in 3D space.
+
+      By tiling the unit cell to fill 3D space, the species and positions of atoms in the crystal structure are determined as follows. 
+
+      $$\begin{align*}\hat{A} &= \{a_{i(\bm{n})} | a_{i(\bm{n})}=a_i, \bm{n}\in\mathbb{Z}^3, 1\leq i \leq N\}\\ \hat{P} &= \{\bm{p}_{i(\bm{n})} | \bm{p}_{i(\bm{n})}=\bm{p}_i+L\bm{n}, \bm{n}\in\mathbb{Z}^3, 1\leq i \leq N\}\end{align*}$$
+
+      Here, we use $i$ to denote the $i$ -th atom in the unit cell, and use $i(\bm{n})$ to denote its duplicate by the 3D translation: $L\bm{n} = n_1\bm{\ell}_1 + n_2\bm{\ell}_2 + n_3\bm{\ell}_3$.
+      We use $j$ and $j(\bm{n})$ similarly.
+
+      ### SE(3)-invariant structural modeling
+      *We consider the problem of estimating the physical state of a given crystal structure, 
+      assuming that the state remains invariant under rigid transformations (i.e., rotations and translations).*
+      Such a state typically corresponds to material properties, such as formation energy and bandgap.
+
+      We represent the state of a crystal structure by a set of abstract atom-wise state features for the unit-cell atoms:
+
+      $$X = [\bm{x}_1, \bm{x}_2, \cdots, \bm{x}_N] \in \mathbb{R}^{d \times N}.$$
+
+      As input to a graph neural network (GNN), these features are usually initialized via atom embeddings:
+
+      $$X^{(0)} \gets \text{AtomEmbedding}(A),$$
+
+      which only symbolically represent atomic species. They are then evolved through message-passing layers
+
+      $$X^{(t+1)} \gets f^{(t)}(X^{(t)}, P, L)$$
+
+      to eventually reflect the atomic states appropriate for a target task.           
+
+      ### Challenges in SE(3)-invariant GNNs
+      There are several approaches to ensuring SE(3) invariance in GNNs:
+
+      - **Invariant features**: Leveraging inherently invariant geometric features, such as interatomic distances $\|\bm{p}_j - \bm{p}_i\|$
+        and angles between triplets $\cos(\bm{p}_j - \bm{p}_i, \bm{p}_k - \bm{p}_i)$, ensures SE(3) invariance.
+        However, fully distance-based models have limited expressive power, 
+        and incorporating three-body interactions significantly increases computational complexity.
+      - **Frames**: Another straightforward approach is to standardize the orientation of a given structure through
+        a structure-aligned coordinate system called a **frame**.
+        However, determining frames for crystal structures is challenging due to their infinite and highly symmetric nature.
+
+      *We explore a new frame-based methodology to incorporate richer yet invariant structural information beyond distances.*
+      
+  - title: Ideas
+    text: |
+      ### What is the role of frames?
+      
+      Surely, it is to standardize the orientations of given structures so that GNN models can directly exploit 3D coordinate information
+      as invariant geometric features.
+
+      **―― Is that all?**
+
+      Let’s dig deeper into how frames work in a GNN, whose message-passing layers are assumed to include the following general operation:
+
+
+      $$\bm{x}'_i = \sum_{j=1}^{N} \sum_{\bm{n}\in \mathbb{Z}^3}  \,\, \underbrace{w_{ij(\bm{n})}}_{\text{Weight}} \,\, \underbrace{\bm{f}_{i\gets j(\bm{n})}(\bm{x}_{j(\bm{n})}, \hat{P})}_{\text{Message}}.$$
+
+      This equation describes that the state $\bm{x}$ of each unit-cell atom $i$ is updated
+      by receiving abstract influences or ‟messages”,  $\bm{f}_{i\gets j(\bm{n})}$, from atoms $j(\bm{n})$ in the structure,
+      weighted by scalars $w_{ij(\bm{n})}$.
+      In recent transformer models, these weights are determined dynamically via self-attention mechanisms.
+
+      Distance-based GNNs ensure SE(3) invariance by simply
+      formulating $\bm{f}_{i\gets j(\bm{n})}$ with the interatomic distance, $r_{ij(\bm{n})} = \|\bm{p}_{j(\bm{n})} - \bm{p}_i \|$, as follows:
+
+      $$\bm{f}^{\text{dist}}_{i\gets j(\bm{n})}(\bm{x}_{j(\bm{n})}, \hat{P}) := \bm{h}_{i\gets j(\bm{n})}(\bm{x}_{j(\bm{n})}, r_{ij(\bm{n})} ).$$
+
+      *The role of frames is to offer, for the design of the message function $\bm{f}_{i\gets j(\bm{n})}$,
+      more informative invariant features beyond the distance through a structure-aligned coordinate system $F \in \mathbb{R}^{3 \times 3}$*,
+      as follows:
+
+      $$\bm{f}^{\text{frame}}_{i\gets j(\bm{n})}(\bm{x}_{j(\bm{n})}, \hat{P}) := \bm{h}_{i\gets j(\bm{n})}(\bm{x}_{j(\bm{n})}, r_{ij(\bm{n})}, F\bm{r}_{ij(\bm{n})} ),$$
+
+      where the frame-projected relative position $F\bm{r}_{ij(\bm{n})}$ remains invariant under global rotations and translations for the crystal structure $\hat{P}$.
+
+      ### Dynamic frames
+
+      *Given that the end-users of frames are the message functions $\bm{f}_{i\gets j(\bm{n})}$ in GNNs,
+      shouldn't we tailor a frame for each message function in each layer so that the function receives a better-normalized structure?*
+
+      **―― We pursue this idea by introducing the concept of dynamic frames.**
+
+      In each message passing layer, the target atom $i$ receives more influences from atoms $j(\bm{n})$ with larger weights $w_{ij(\bm{n})}$,
+      and no influence from atoms $j(\bm{n})$ with zero weights.
+      This means that, when updating the state of atom $i$, this atom has
+      its own partial and local view of the structure $\hat{P}$ through weights $w_{ij(\bm{n})}$ acting as a mask on the structure.
+
+      <div style="text-align:center">
+      <p><img src="frame.png" class="uk-width-3-5@m" alt="Dynamic frame in 2D space" /><br />
+      <strong>Dynamic frame in 2D space</strong></p>
+      </div>
+
+      As a dynamic frame, we therefore construct an atom-wise frame $F_i$ for each target atom $i$
+      by using this masked view of the structure $\hat{P}$ with weights $\bm{w}_{i}$, as follows:
+
+      $$F_i \gets \text{FrameConstruction}_i(\hat{P}, \bm{w}_{i}).$$
+
+      Typically, *we define an orthonormal basis $F_i = [\bm{e}_1, \bm{e}_2, \bm{e}_3]^T$ as a frame,
+      where the first and second axes point towards the primary and secondary influential directions of interatomic interactions.*
+      (See the paper for detailed definitions.)
+
+      This dynamic frame is then used to project the relative position vectors $\bm{r}_{ij(\bm{n})}$
+      in order to derive the messages for the target atom $i$, as follows:
+
+      $$\bm{f}^{\text{dynamic}}_{i\gets j(\bm{n})}(\bm{x}_{j(\bm{n})}, \hat{P}) := \bm{h}_{i\gets j(\bm{n})}(\bm{x}_{j(\bm{n})}, r_{ij(\bm{n})}, F_i \bm{r}_{ij(\bm{n})} ).$$
+
+      Importantly, our dynamic frames are constructed with the entire structure $\hat{P}$, 
+      rather than with a specific unit-cell representation $(P, L)$.
+      Thus, *our dynamic frames are invariant under the unit-cell variations within the same crystal structure.*
+
+  - title: CrystalFramer
+    text: |
+      We demonstrate the proposed concept of dynamic frames by utilizing the Crystalformer architecture ([Taniai et al., ICLR 2024](https://omron-sinicx.github.io/crystalformer/)).
+      Crystalformer employs the standard softmax self-attention for message passing,
+      which is formulated as *infinitely connected distance-decay attention* as follows: 
+
+      $$\begin{align*}\bm{x}'_i &= \sum_{j=1}^{N} \sum_{\bm{n}\in \mathbb{Z}^3} \color{#C00000} \,\, w_{ij(\bm{n})} \,\, \color{#0070C0} \bm{f}_{i\gets j(\bm{n})}(\bm{x}_{j(\bm{n})}, \hat{P}) \\ &= \sum_{j=1}^N\sum_{\bm{n}\in \mathbb{Z}^3} \color{#C00000} {\frac{1}{Z_i} \exp\left(\frac{{\bm{q}_i^T \bm{k}_{j}}}{\sqrt{d_K}} - \frac{\|\bm{r}_{ij(\bm{n})}\|^2}{2\sigma_i^2}\right)} \color{#0070C0} {\left(\bm{v}_{j} +\bm{\psi}_{ij(\bm{n})}\right)}.\end{align*}$$
+
+      Here, query $\bm{q}$, key $\bm{k}$, and value $\bm{v}$ are linear projections of the current state $\bm{x}$.
+      Scalar $Z_i$ is the normalizer of softmax attention weights.
+      Vector $\bm{\psi}_{ij(\bm{n})}$ is a geometric relative position encoding for atoms $i$ and $j(\bm{n})$.
+
+      Originally, $\bm{\psi}_{ij(\bm{n})}$ simply encodes the scalar distance $r_{ij(\bm{n})}$ via 
+      a linear projection of Gaussian basis functions (GBFs).
+      In this work, *we enhance the model's expressive power by incorporating frame-based geometric features
+      into the Crystalformer's relative position encoding $\bm{\psi}_{ij(\bm{n})}$.*
+      This results in a new architecture **CrystalFramer**.
+
+      ### Frame-based invariant features
+      Given the unit direction vector $\bar{\bm{r}}_{ij(\bm{n})} = \bm{r}_{ij(\bm{n})} / r_{ij(\bm{n})}$,
+      we obtain its invariant representation $\bm{\theta}_{ij(\bm{n})} = F_i \bar{\bm{r}}_{ij(\bm{n})}$,
+      where the $k$ -th component represents the cosine of the angle between the $k$ -th axis and the direction:
+
+      $$\theta_{ij(\bm{n})}^{(k)} = \bm{e}_k \cdot \bar{\bm{r}}_{ij(\bm{n})}.$$
+
+      Using GBFs $\bm{b}(x)$ as a mapping from a scalar to a vector, we linearly combine
+      the distance-based and three angle-based edge features, as follows:
+
+      $$\bm{\psi}_{ij(\bm{n})} = W_0 \bm{b}_\text{dist}\left(r_{ij(\bm{n})}\right) + \sum_{k=1,2,3} W_k\bm{b}_\text{angl}\left(\theta_{ij(\bm{n})}^{(k)}\right).$$
+
+      *This $\bm{\psi}_{ij(\bm{n})}$ as a whole essentially encodes the 3D relative position vector, $\bm{r}_{ij(\bm{n})} = \bm{p}_{j(\bm{n})} - \bm{p}_i$.*
+
+      ### Architecture
+
+      Below is the architecture of CrystalFramer, where we have introduced
+      dynamic frame construction and frame-based edge features, as highlighted in the figure.
+
+      <div style="text-align:center">
+      <p><img src="network.png" class="uk-width-4-5@m" alt="CrystalFramer architecture" /><br />
+      <strong>CrystalFramer architecture</strong></p>
+      </div>
+
+      Given the multi-head self-attention mechanism, *we dynamically construct a frame for each target atom, head, and layer during the self-attention operation.*
+
+  - title: Property Prediction Benchmarks
+    text: |
+      We evaluated the performance of CrystalFramer using two types of dynamic frames: weighted PCA frames and max frames.
+      We compared these with existing crystal frames (PCA frames and lattice frames) and other state-of-the-art crystal encoders.
+      For evaluation, we used three datasets: JARVIS (55,723 materials), Materials Project (69,239 materials), and OQMD (817,636 materials).
+
+      <h3>JARVIS dataset</h3>
+      <div class="uk-overflow-auto">
+        <table class="uk-table uk-table-small uk-text-small uk-table-divider">
+                  <thead class="uk-table-small uk-text-decoration-none">
+          <tr>
+            <th class="uk-table-expand"><button type="button" uk-toggle="target: .tgl-jarvis; animation: uk-animation-slide-top, uk-animation-slide-top uk-animation-reverse">Full/Selected</button></th>
+            <th class="uk-text-decoration-none">E form</th>
+            <th>E total</th>
+            <th>BG (OPT)</th>
+            <th>BG (MBJ)</th>
+            <th>E hull</th>
+          </tr>
+          <!--tr>
+            <th></th>
+            <th>44578/5572/5572<br />eV/atom</th>
+            <th>44578/5572/5572<br />eV/atom</th>
+            <th>44578/5572/5572<br />eV</th>
+            <th>14537/1817/1817<br />eV</th>
+            <th>44296/5537/5537<br />eV</th>
+          </tr-->
+        </thead>
+        <tbody class="uk-table-small">
+          <tr class="tgl-jarvis" hidden> <td>CGCNN (Xie & Grossman, 2018) </td><td>0.063</td><td> 0.078</td><td> 0.20</td><td>0.41 </td><td> 0.17   </td> </tr>
+          <tr class="tgl-jarvis" hidden> <td>SchNet (Schütt et al., 2018) </td><td>0.045</td><td>  0.047</td><td>0.19</td><td>0.43</td><td>0.14   </td> </tr>
+          <tr class="tgl-jarvis" hidden> <td>MEGNet (Chen et al. 2019) </td><td>0.047</td><td>   0.058</td><td>0.145</td><td>0.34</td><td>0.084  </td> </tr>
+          <tr class="tgl-jarvis" hidden> <td>GATGNN (Louis et al., 2020) </td><td>0.047</td><td>  0.056</td><td>0.17</td><td>0.51</td><td>0.12              </td> </tr>
+          <tr class="tgl-jarvis" hidden> <td>M3GNet (Chen et al., 2022)</td><td>0.039 </td><td>	0.041 </td><td>	0.145 </td><td>	0.362 </td><td>	0.095 </td> </tr>
+          <tr class="tgl-jarvis" hidden> <td>ALIGNN (Choudhary et al., 2021)</td><td>0.0331</td><td> 0.037</td><td>0.142</td><td>0.31</td><td>0.076   </td> </tr>
+          <tr> <td> Matformer (Yan et al., 2022)</td><td>0.0325</td><td>0.035</td><td>0.137</td><td>0.30</td><td>0.064    </td> </tr>
+          <tr> <td> PotNet (Lin et al., 2023)</td><td> 0.0294</td><td>0.032</td><td>0.127</td><td>0.27</td><td>0.055 </td> </tr>
+          <tr> <td> eComFormer (Yan et al., 2024)</td><td>0.0284</td><td>0.032</td><td>0.124</td><td>0.28</td><td><strong> 0.044</strong></td> </tr>
+          <tr> <td> iComFormer (Yan et al., 2024)</td><td><span style="text-decoration:underline">0.0272</span></td><td><span style="text-decoration:underline">0.0288</span></td><td><span style="text-decoration:underline">0.122</span></td><td><span style="text-decoration:underline">0.26</span></td><td>0.047 </td> </tr>
+          <tr class="uk-active"> <td> Crystalformer (Taniai et al., 2024)</td><td>0.0306</td><td>0.0320</td><td>0.128</td><td>0.274</td><td><span style="text-decoration:underline">0.0463</span></td> </tr>
+          <tr class="uk-active"> <td>─ w/ PCA frames (Duval et al., 2023)</td><td>0.0325</td><td>0.0334</td><td>0.144</td><td>0.292</td><td>0.0568 </td> </tr>
+          <tr class="uk-active"> <td>─ w/ lattice frames (Yan et al., 2024)</td><td>0.0302</td><td>0.0323</td><td>0.125</td><td>0.274</td><td>0.0531 </td>
+          <tr class="uk-active"> <td>─ w/ static local frames</td><td>0.0285</td><td>0.0292</td><td><span style="text-decoration:underline">0.122</span></td><td><span style="text-decoration:underline">0.261</span></td><td><strong> 0.0444</strong> </td> </tr>
+          <tr class="uk-active"> <td>─ w/ weighted PCA frames (<strong>proposed</strong>)</td><td>0.0287</td><td>0.0305</td><td>0.126</td><td>0.279</td><td><strong> 0.0444</strong> </td> </tr>
+          <tr class="uk-active"> <td>─ w/ max frames (<strong>proposed</strong>)</td><td><strong> 0.0263</strong></td><td><strong> 0.0279</strong></td><td><strong> 0.117</strong></td><td><strong> 0.242</strong></td><td>0.0471 </td> </tr>
+        </tbody>
+        </table>
+      </div>
+
+      <h3>Materials Project dataset</h3>
+      <div class="uk-overflow-auto">
+      <table class="uk-table uk-table-small uk-text-small uk-table-divider">
+      <thead class="uk-table-small uk-text-decoration-none">
+      <tr>
+      <th class="uk-table-expand"><button type="button" uk-toggle="target: .tgl-mp; animation: uk-animation-slide-top, uk-animation-slide-top uk-animation-reverse">Full/Selected</button></th>
+      <th>E form</th>
+      <th>BG</th>
+      <th>Bulk modulus</th>
+      <th>Shear modulus</th>
+      </tr>
+      </thead>
+      <tbody class="uk-table-small">
+      <tr class="tgl-mp" hidden><td>CGCNN (Xie & Grossman, 2018)</td>   <td>0.031</td><td>0.292 </td><td>0.047</td><td>0.077</td></tr>
+      <tr class="tgl-mp" hidden><td>SchNet (Schütt et al., 2018)</td>   <td>0.033</td><td>0.345</td><td>0.066</td><td>0.099</td></tr>
+      <tr class="tgl-mp" hidden><td>MEGNet (Chen et al. 2019)</td>      <td>0.030</td><td>0.307</td><td>0.060</td><td>0.099</td></tr>
+      <tr class="tgl-mp" hidden><td>GATGNN (Louis et al., 2020)</td>    <td>0.033</td><td>0.280</td><td>0.045</td><td>0.075</td></tr>
+      <tr class="tgl-mp" hidden><td>M3GNet (Chen et al., 2022)</td>     <td>0.024</td><td>0.247</td><td>0.050</td><td>0.087</td></tr>
+      <tr class="tgl-mp" hidden><td>ALIGNN (Choudhary et al., 2021)</td><td>0.022</td><td>0.218</td><td>0.051</td><td>0.078</td></tr>
+      <tr><td>Matformer (Yan et al., 2022)</td>   <td>0.021</td><td>0.211</td><td>0.043</td><td>0.073</td></tr>
+      <tr><td>PotNet (Lin et al., 2023)</td>      <td>0.0188</td><td>0.204</td><td>0.040</td><td><span style="text-decoration:underline">0.065</span></td></tr>
+      <tr><td>eComFormer (Yan et al., 2024)</td>  <td>0.0182</td><td>0.202</td><td>0.0417</td><td>0.0729</td></tr>
+      <tr><td>iComFormer (Yan et al., 2024)</td>  <td>0.0183</td><td>0.193</td><td>0.0380</td><td><strong>0.0637</strong></td></tr>
+      <tr class="uk-active"><td>Crystalformer (Taniai et al., 2024)</td>    <td>0.0186</td><td>0.198</td><td>0.0377</td><td>0.0689</td></tr>
+      <tr class="uk-active"><td>─ w/ PCA frames (Duval et al., 2023)</td>   <td>0.0197</td><td>0.217</td><td>0.0424</td><td>0.0719</td></tr>
+      <tr class="uk-active"><td>─ w/ lattice frames (Yan et al., 2024)</td> <td>0.0194</td><td>0.212</td><td>0.0389</td><td>0.0720</td></tr>
+      <tr class="uk-active"><td>─ w/ static local frames</td>               <td><span style="text-decoration:underline">0.0178</span></td><td><span style="text-decoration:underline">0.191</span></td><td><span style="text-decoration:underline">0.0354</span></td><td>0.0708</td></tr>
+      <tr class="uk-active"><td>─ w/ weighted PCA frames (<strong>proposed</strong>)</td>    <td>0.0197</td><td>0.214</td><td>0.0423</td><td>0.0715</td></tr>
+      <tr class="uk-active"><td>─ w/ max frames (<strong>proposed</strong>)</td>             <td><strong>0.0172</strong></td><td><strong>0.185</strong></td><td><strong>0.0338</strong></td><td>0.0677</td></tr>
+      </tbody>
+      </table>
+      </div>
+
+      <h3>OQMD dataset</h3>
+      <div class="uk-overflow-auto">
+      <table class="uk-table uk-table-small uk-text-small uk-table-divider">
+      <thead class="uk-table-small uk-text-decoration-none">
+      <tr>
+      <th class="uk-table-expand"></th>
+      <th># Blocks</th>
+      <th>E form</th>
+      <th>BG</th>
+      <th>E hull</th>
+      </tr>
+      </thead>
+      <tbody class="uk-table-small">
+      <tr><td>Crystalformer (baseline)</td><td>4</td><td>0.02115</td><td>0.06028</td><td>0.06759</td></tr>
+      <tr class="uk-active"><td><strong>CrystalFramer</strong> (max frames)</td><td>4</td><td><span style="text-decoration:underline">0.01871</span></td><td><span style="text-decoration:underline">0.05805</span></td><td><span style="text-decoration:underline">0.06607</span></td></tr>
+      <tr><td>Crystalformer (baseline)</td><td>8</td><td>0.02104</td><td>0.05986</td><td>0.06690</td></tr>
+      <tr class="uk-active"><td><strong>CrystalFramer</strong> (max frames)</td><td>8</td><td><strong>0.01778</strong></td><td><strong>0.05785</strong></td><td><strong>0.06454</strong></td></tr>
+      </tbody>
+      </table>
+      </div>
+
+      *Overall, CrystalFramer significantly improves the baseline performance of CrystalFormer 
+      and outperforms most existing methods across various tasks and datasets.*
+
+  - title: Visual Analysis
+    text: |
+      
+      <img src="example1.png" width="100%" alt="MgSnF4">
+
+      <img src="example2.png" width="100%" alt="C3N4">
+
+      *Max frames capture local motiffs around the target atom, while weighted PCA frames look at the structure over broader areas.*
+      *Both types of frames tend to focus on close neighbors in shallow layers and relatively distant neighbors in deeper layers.*
+
+
+projects:
+  - title: 'Crystalformer: Infinitely Connected Attention for Periodic Structure Encoding'
+    journal: "ICLR 2024"
+    img: https://omron-sinicx.github.io/crystalformer/assets/teaser.png
+    description: Propose a transformer for crystal property prediction by mimicking interatomic potential summations via self-attention.
+    url: https://omron-sinicx.github.io/crystalformer/
