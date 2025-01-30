@@ -23,7 +23,7 @@ jobs:
         run: npm run build
         continue-on-error: true
       - name: upload
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v4
         with:
           path: build
   deploy:
