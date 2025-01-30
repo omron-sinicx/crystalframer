@@ -73,7 +73,7 @@ overview: |
   symmetric nature. In particular, existing methods rely on a statically fixed frame for each structure, determined solely 
   by its structural information, regardless of the task under consideration. Here, we rethink the role of frames, 
   *questioning whether such simplistic alignment with the structure is sufficient*, and propose the concept of 
-  *dynamic frames*. While accommodating the infinite and symmetric nature of crystals, these frames provide each atom 
+  **dynamic frames**. While accommodating the infinite and symmetric nature of crystals, these frames provide each atom 
   with a dynamic view of its local environment, focusing on actively interacting atoms. We demonstrate this concept by 
   utilizing the attention mechanism in a recent transformer-based crystal encoder, resulting in a new architecture called 
   **CrystalFramer**. Extensive experiments show that CrystalFramer outperforms conventional frames and existing crystal encoders 
