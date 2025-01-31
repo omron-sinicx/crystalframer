@@ -144,7 +144,7 @@ body:
       Surely, it is to standardize the orientations of given structures so that GNN models can directly exploit 3D coordinate information
       as invariant geometric features.
 
-      **―― Is that all?**
+      **── Is that all?**
 
       Let’s dig deeper into how frames work in a GNN, whose message-passing layers are assumed to include the following general operation:
 
@@ -174,7 +174,7 @@ body:
       *Given that the end-users of frames are the message functions $\bm{f}_{i\gets j(\bm{n})}$ in GNNs,
       shouldn't we tailor a frame for each message function in each layer so that the function receives a better-normalized structure?*
 
-      **―― We pursue this idea by introducing the concept of dynamic frames.**
+      **── We pursue this idea by introducing the concept of dynamic frames.**
 
       In each message passing layer, the target atom $i$ receives more influences from atoms $j(\bm{n})$ with larger weights $w_{ij(\bm{n})}$,
       and no influence from atoms $j(\bm{n})$ with zero weights.
@@ -259,7 +259,7 @@ body:
         <table class="uk-table uk-table-small uk-text-small uk-table-divider">
                   <thead class="uk-table-small uk-text-decoration-none">
           <tr>
-            <th class="uk-table-expand"><button type="button" uk-toggle="target: .tgl-jarvis; animation: uk-animation-slide-top, uk-animation-slide-top uk-animation-reverse">Full/Selected</button></th>
+            <th class="uk-table-expand"><button class="uk-button uk-button-small" type="button" uk-toggle="target: .tgl-jarvis; animation: uk-animation-slide-top, uk-animation-slide-top uk-animation-reverse">Full/Selected</button></th>
             <th class="uk-text-decoration-none">E form</th>
             <th>E total</th>
             <th>BG (OPT)</th>
@@ -301,7 +301,7 @@ body:
       <table class="uk-table uk-table-small uk-text-small uk-table-divider">
       <thead class="uk-table-small uk-text-decoration-none">
       <tr>
-      <th class="uk-table-expand"><button type="button" uk-toggle="target: .tgl-mp; animation: uk-animation-slide-top, uk-animation-slide-top uk-animation-reverse">Full/Selected</button></th>
+      <th class="uk-table-expand"><button class="uk-button uk-button-small" type="button" uk-toggle="target: .tgl-mp; animation: uk-animation-slide-top, uk-animation-slide-top uk-animation-reverse">Full/Selected</button></th>
       <th>E form</th>
       <th>BG</th>
       <th>Bulk modulus</th>
