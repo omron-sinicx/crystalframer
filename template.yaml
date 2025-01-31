@@ -370,3 +370,9 @@ projects:
     img: https://omron-sinicx.github.io/crystalformer/teaser_small.png
     description: Propose a transformer for crystal property prediction by mimicking interatomic potential summations via self-attention.
     url: https://omron-sinicx.github.io/crystalformer/
+
+  - title: 'Neural structure fields with application to crystal structure autoencoders'
+    journal: "Commun Mater 2023"
+    img: https://omron-sinicx.github.io/neural-structure-field/icon.png
+    description: Propose a decoder for crystal structures by representing the structures as 3D continuous fields.
+    url: https://omron-sinicx.github.io/neural-structure-field/
