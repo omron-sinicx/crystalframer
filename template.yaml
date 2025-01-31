@@ -11,7 +11,7 @@ resources:
   demo: null
   huggingface: null
 description: To make a GNN invariant to rotations, let's standardize the oriantations of local atomic environments represented by internal self-attention weights, instead of directly standardizing the global structure.
-image: https://omron-sinicx.github.io/crystalframer/teaser.png
+image: https://omron-sinicx.github.io/crystalframer/icon.png
 url: https://omron-sinicx.github.io/crystalframer
 speakerdeck: null #b7a0614c24014dcbbb121fbb9ed234cd
 authors:
