@@ -367,6 +367,6 @@ body:
 projects:
   - title: 'Crystalformer: Infinitely Connected Attention for Periodic Structure Encoding'
     journal: "ICLR 2024"
-    img: https://omron-sinicx.github.io/crystalformer/assets/teaser.png
+    img: https://omron-sinicx.github.io/crystalformer/teaser_small.png
     description: Propose a transformer for crystal property prediction by mimicking interatomic potential summations via self-attention.
     url: https://omron-sinicx.github.io/crystalformer/
