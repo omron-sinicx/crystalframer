@@ -5,6 +5,7 @@ title: 'Rethinking the role of frames for SE(3)-invariant crystal structure mode
 conference: ICLR 2025
 resources:
   paper: https://openreview.net/forum?id=gzxDjnvBDa
+  arxiv: https://arxiv.org/abs/2503.02209
   code: https://github.com/omron-sinicx/crystalframer
   video: null
   blog: null
@@ -78,6 +79,13 @@ overview: |
   utilizing the attention mechanism in a recent transformer-based crystal encoder, resulting in a new architecture called 
   **CrystalFramer**. Extensive experiments show that CrystalFramer outperforms conventional frames and existing crystal encoders 
   in various crystal property prediction tasks.
+
+  <div style="text-align:center">
+  <blockquote class="twitter-tweet tw-align-center" data-media-max-width="800"><p lang="en" dir="ltr"></p><a href="https://twitter.com/omron_sinicx/status/1897272301936369976?ref_src=twsrc%5Etfw"></a><script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+  </div>
+  <div style="text-align:center">
+  Open the post on X for a quick digest!
+  </div>
 
 body:
   - title: Problem
