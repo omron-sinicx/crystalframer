@@ -6,6 +6,7 @@ conference: ICLR 2025
 resources:
   paper: https://openreview.net/forum?id=gzxDjnvBDa
   arxiv: https://arxiv.org/abs/2503.02209
+  poster: ./iclr2025-poster.pdf
   code: https://github.com/omron-sinicx/crystalframer
   video: null
   blog: null
