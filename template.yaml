@@ -11,14 +11,14 @@ resources:
   blog: null
   demo: null
   huggingface: null
-description: To make a GNN invariant to rotations, let's standardize the oriantations of local atomic environments represented by internal self-attention weights, instead of directly standardizing the global structure.
+description: To make a GNN invariant to rotations, let's standardize the orientations of local atomic environments represented by internal self-attention weights, instead of directly standardizing the global structure.
 image: https://omron-sinicx.github.io/crystalframer/icon.png
 url: https://omron-sinicx.github.io/crystalframer
 speakerdeck: null #b7a0614c24014dcbbb121fbb9ed234cd
 authors:
   - name: Yusei Ito*
     affiliation: [1, 2]
-    url: https://openreview.net/profile?id=~Yusei_Ito1
+    url: https://yusei-ito.github.io/bio/
     position: Intern
   - name: Tatsunori Taniai*
     affiliation: [1]
