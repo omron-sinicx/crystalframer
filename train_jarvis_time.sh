@@ -4,8 +4,8 @@ save_path="result/CrystalFramer_benchmark/JARVIS"
 
 # | target_set                      | targets |
 # jarvis__megnet                    | e_form | bandgap | 
-# jarvis__megnet-bulk               | bulk_modulus
-# jarvis__megnet-shear              | shear_modulus
+# jarvis__megnet-bulk_modulus       | bulk_modulus
+# jarvis__megnet-shear_modulus      | shear_modulus
 # jarvis__dft_3d_2021               | formation_energy | total_energy | opt_bandgap |
 # jarvis__dft_3d_2021-ehull         | ehull |
 # jarvis__dft_3d_2021-mbj_bandgap   | mbj_bandgap |

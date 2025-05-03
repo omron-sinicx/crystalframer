@@ -179,7 +179,7 @@ void real_enc_frame_proj_bwd_length(
 
             float bg = 0;
 
-            #if 0 //VPE_DIM - LENGTH_RANGE > 8
+            #if VPE_DIM - LENGTH_RANGE > 8
             // CASE 1: ----------- Compute Gaussians within sigma*CUT_SIGMA ----------
             int start_dim = (d-CUT_SIGMA*sig)/interval - 1;
             start_dim = min(start_dim, VPE_DIM-LENGTH_RANGE);

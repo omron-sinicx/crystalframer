@@ -6,6 +6,16 @@ In *The Thirteenth International Conference on Learning Representations* (ICLR 2
 
 [[Paper](https://openreview.net/pdf?id=gzxDjnvBDa)]  [[Reviews](https://openreview.net/forum?id=gzxDjnvBDa)]  [[Project](https://omron-sinicx.github.io/crystalframer/)]
 
+# Table of Contents
+- [Citation](#citation)
+- [Setup a Docker Environment](#setup-a-docker-environment)
+- [Prepare Datasets](#prepare-datasets)
+- [Training](#training)
+  - [Single GPU Training](#single-gpu-training)
+  - [Multiple GPU Training](#multiple-gpu-training)
+- [Remarks](#remarks)
+- [Use a Custom Dataset](#use-a-custom-dataset)
+
 ## Citation
 ```text
 @inproceedings{ito2025crystalframer,
@@ -38,7 +48,7 @@ Since our methodology and codebase build upon our previous work, [Crystalformer]
 }
 ```
 
-## Setup a Docker environment
+## Setup a Docker Environment
 ```bash
 cd docker/pytorch21_cuda121
 docker build -t main/crystalframer:latest .
@@ -46,12 +56,12 @@ docker run --gpus=all --name crystalframer --shm-size=2g -v ../../:/workspace -i
 ```
 Note: If `docker run` fails due to a relative path issue, please replace `../../` with the absolute path to the cloned repository directory.
 
-## Prepare datasets
+## Prepare Datasets
 In the docker container:
 ```bash
 cd /workspace/data
 python download_megnet_elastic.py
-python download_jarvis.py # This step may take 1 hour and can be skipped for simple testing.
+python download_jarvis.py
 python download_oqmd.py 
 ```
 
@@ -74,7 +84,10 @@ CUDA_VISIBLE_DEVICES=0 python train.py -p crystalframer/default_jarvis.json \
     --targets formation_energy \
 
 ```
-Setting `--value_pe_angle_real 0` yields the "Crystalformer".
+Setting `--value_pe_angle_real 0` yields the "Crystalformer" (baseline).
+
+We provide three training scripts `train_mp.sh`, `train_jarvis.sh`, `train_oqmd.sh` for the Materials Project, JARVIS, and OQMD datasets, using max frames and default hyperparameters.
+We also provide another training script `train_jarvis_time.sh` for evaluating efficiency on the JARVIS dataset, with default and lightweight configurations.
 
 ### Multiple GPU Training
 In the `/workspace` directory in the docker container:
@@ -102,8 +115,8 @@ Currently, the throughput gain by multi-gpu training is limited. Suggest 2 or 4 
 |---------------------------------|------------------|----------|--------|-------|-------|
 | jarvis__megnet                  | e_form           | eV/atom  | 60000  | 5000  | 4239  |
 | jarvis__megnet                  | bandgap          | eV       | 60000  | 5000  | 4239  |
-| jarvis__megnet-bulk             | bulk             | log(GPA) | 4664   | 393   | 393   |
-| jarvis__megnet-shear            | shear            | log(GPA) | 4664   | 392   | 393   |
+| jarvis__megnet-bulk_modulus     | bulk_modulus     | log(GPA) | 4664   | 393   | 393   |
+| jarvis__megnet-shear_modulus    | shear_modulus    | log(GPA) | 4664   | 392   | 393   |
 | jarvis__dft_3d_2021             | formation_energy | eV/atom  | 44578  | 5572  | 5572  |
 | jarvis__dft_3d_2021             | total_energy     | eV/atom  | 44578  | 5572  | 5572  |
 | jarvis__dft_3d_2021             | opt_bandgap      | eV       | 44578  | 5572  | 5572  |
