@@ -3,7 +3,7 @@ import os
 import pathlib
 from jarvis.db.figshare import data as jdata
 from jarvis.core.atoms import Atoms
-
+from check_datasets import check
 from tqdm import tqdm
 import random
 import numpy
@@ -100,6 +100,8 @@ if __name__ == '__main__':
             print(f"Processing dataset: {t}")
             data = jdata(t)
             new_data = []
+            data_idx = []
+            idx = 0
             print(data[0])
             for x in tqdm(data):
                 atoms = Atoms(
@@ -146,8 +148,11 @@ if __name__ == '__main__':
                 if ok:
                     new_data.append(new_x)
                     atom_nums.append(len(x['atoms']['coords']))
-            
-            
+                    data_idx.append(idx)
+                idx += 1
+
+            data_idx = numpy.array(data_idx)
+
             print(f"filtered: {len(data)} -> {len(new_data)} ({len(new_data) - len(data)})")
             atom_nums = numpy.array(atom_nums).astype(numpy.float64)
             print("Mean Std Median: ", atom_nums.mean(), atom_nums.std(), numpy.median(atom_nums))
@@ -157,17 +162,42 @@ if __name__ == '__main__':
             for k in data[0]:
                 print(f"{k}\t: {data[0][k]}")
 
-            if t == "megnet":
-                id_train, id_val, id_test = get_id_train_val_test(
-                    len(data),
-                    n_train=60000,
-                    n_val=5000,
-                    n_test=4239
-                )
+            if os.path.exists("splits/"+str(save_names[i])+"/train.pkl"):
+                print("Using pre-defined split")
+                with open("splits/"+str(save_names[i])+"/train.pkl", 'rb') as f:
+                    train_idx = pickle.load(f)
+                id_train = []
+                for _ in range(train_idx.shape[0]):
+                    id_train.append(int(numpy.where(data_idx == train_idx[_])[0]))
+                with open("splits/"+str(save_names[i])+"/val.pkl", 'rb') as f:
+                    val_idx = pickle.load(f)
+                id_val = []
+                for _ in range(val_idx.shape[0]):
+                    id_val.append(int(numpy.where(data_idx == val_idx[_])[0]))
+                with open("splits/"+str(save_names[i])+"/test.pkl", 'rb') as f:
+                    test_idx = pickle.load(f)
+                id_test = []
+                for _ in range(test_idx.shape[0]):
+                    id_test.append(int(numpy.where(data_idx == test_idx[_])[0]))
             else:
-                id_train, id_val, id_test = get_id_train_val_test(
-                    len(data),
-                )
+                if t == "megnet":
+                    id_train, id_val, id_test = get_id_train_val_test(
+                        len(data),
+                        n_train=60000,
+                        n_val=5000,
+                        n_test=4239
+                    )
+                else:
+                    id_train, id_val, id_test = get_id_train_val_test(
+                        len(data),
+                    )
+                os.makedirs("splits/"+str(save_names[i]), exist_ok=True)
+                with open("splits/"+str(save_names[i])+"/train.pkl", "wb") as fp:
+                    pickle.dump(data_idx[numpy.array(id_train)], fp)
+                with open("splits/"+str(save_names[i])+"/val.pkl", "wb") as fp:
+                    pickle.dump(data_idx[numpy.array(id_val)], fp)
+                with open("splits/"+str(save_names[i])+"/test.pkl", "wb") as fp:
+                    pickle.dump(data_idx[numpy.array(id_test)], fp)
 
             splits = {}
             splits['train'] = [data[i] for i in id_train]
@@ -186,3 +216,7 @@ if __name__ == '__main__':
             
         except Exception as e:
             raise e
+    if check(save_names):
+        print("The data is correctly split.")
+    else:
+        print("The data split is incorrect.")

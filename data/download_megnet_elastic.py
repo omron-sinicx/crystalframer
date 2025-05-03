@@ -3,6 +3,8 @@ import requests
 import pickle
 from tqdm import tqdm
 from jarvis.core.atoms import Atoms
+from check_datasets import check
+
 
 # Prepare bulk and shear megnet dataset from the Matformer paper (NeurIPS 22):
 # https://github.com/YKQ98/Matformer/tree/569a7e9331b2acacc184fab38f5f6085e46a9881 
@@ -30,13 +32,13 @@ elems = {
 
 count = 0
 for target in ["bulk", "shear"]:
-    outdir = f'jarvis__megnet-{target}'
+    outdir = f'jarvis__megnet-{target}_modulus'
     os.makedirs(outdir, exist_ok=True)
 
     all = []
     for split in ["train", "val", "test"]:
         url = urls[count]
-        filename = f'{outdir}/{target}_megnet_{split}.pkl'
+        filename = f'{outdir}/{target}_modulus_megnet_{split}.pkl'
 
         # under proxy, use verify=False to avoid an SSL error.
         urlData = requests.get(url, verify=False).content
@@ -76,3 +78,4 @@ for target in ["bulk", "shear"]:
         print(new_data[0])
         
         count += 1
+    check([outdir])
