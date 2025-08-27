@@ -190,7 +190,7 @@ with open(f'data/{target_set}/{split}/raw/raw_data.pkl', mode="wb") as fp:
 
 Then, you can specify your dataset and its target property name as
 ```bash
-python train.py -p latticeformer/default.json \
+python train.py -p crystalframer/default.json \
   --target_set your_dataset_name \
   --targets [property1|property2] \
 ```
