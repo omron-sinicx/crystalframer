@@ -10,6 +10,7 @@ In *The Thirteenth International Conference on Learning Representations* (ICLR 2
 - [Citation](#citation)
 - [Setup a Docker Environment](#setup-a-docker-environment)
 - [Prepare Datasets](#prepare-datasets)
+- [Testing](#testing)
 - [Training](#training)
   - [Single GPU Training](#single-gpu-training)
   - [Multiple GPU Training](#multiple-gpu-training)
@@ -64,6 +65,12 @@ python download_megnet_elastic.py
 python download_jarvis.py
 python download_oqmd.py 
 ```
+
+## Testing
+Download pretrained weights: [[Release v1.0.1](https://github.com/omron-sinicx/crystalframer/releases/tag/v1.0.1)]. We currently provide pretrained weights for the max frames configuration of the JARVIS-DFT 3D and Materials Project (MEGNet) datasets.
+You can use them with `demo.sh`.
+
+Please note that these weights were trained in a different environment, so the results may vary slightly from the paper.
 
 ## Training
 ### Single GPU Training
