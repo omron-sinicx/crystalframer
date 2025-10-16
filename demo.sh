@@ -20,7 +20,7 @@ exp_name=max
 gpu=0
 
 
-CUDA_VISIBLE_DEVICES=${gpu} python demo.py -p latticeformer/default_jarvis.json \
+CUDA_VISIBLE_DEVICES=${gpu} python demo.py -p crystalframer/default_jarvis.json \
     --frame_method ${frame_method} \
     --value_pe_dist_coef 1.0 \
     --value_pe_angle_wscale 4.0 \
